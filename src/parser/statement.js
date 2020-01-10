@@ -323,12 +323,12 @@ export default class StatementParser extends ExpressionParser {
   }
 
   canHaveLeadingDecorator(): boolean {
-    // !!!.
+    // !!!
     if (this.match(tt._const)) {
         const oldState = this.state;
         let found = false;
 
-        this.state = old.clone(true);
+        this.state = oldState.clone(true);
 
         while (!(this.match(tt.eof) || this.match(tt.semi))) {
             this.nextToken();
