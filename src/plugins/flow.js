@@ -21,6 +21,7 @@ import {
   SCOPE_ARROW,
   SCOPE_OTHER,
 } from "../util/scopeflags";
+import type { ExpressionErrors } from "../parser/util";
 
 const reservedTypes = new Set([
   "_",
@@ -2266,9 +2267,10 @@ export default (superClass: Class<Parser>): Class<Parser> =>
 
     parsePropertyName(
       node: N.ObjectOrClassMember | N.ClassMember | N.TsNamedTypeElementBase,
+      isPrivateNameAllowed: boolean,
     ): N.Identifier {
       const variance = this.flowParseVariance();
-      const key = super.parsePropertyName(node);
+      const key = super.parsePropertyName(node, isPrivateNameAllowed);
       // $FlowIgnore ("variance" not defined on TsNamedTypeElementBase)
       node.variance = variance;
       return key;
@@ -2282,7 +2284,7 @@ export default (superClass: Class<Parser>): Class<Parser> =>
       isGenerator: boolean,
       isAsync: boolean,
       isPattern: boolean,
-      refShorthandDefaultPos: ?Pos,
+      refExpressionErrors: ?ExpressionErrors,
       containsEsc: boolean,
     ): void {
       if ((prop: $FlowFixMe).variance) {
@@ -2305,7 +2307,7 @@ export default (superClass: Class<Parser>): Class<Parser> =>
         isGenerator,
         isAsync,
         isPattern,
-        refShorthandDefaultPos,
+        refExpressionErrors,
         containsEsc,
       );
 
@@ -2558,7 +2560,7 @@ export default (superClass: Class<Parser>): Class<Parser> =>
     // 3. This is neither. Just call the super method
     parseMaybeAssign(
       noIn?: ?boolean,
-      refShorthandDefaultPos?: ?Pos,
+      refExpressionErrors?: ?ExpressionErrors,
       afterLeftParse?: Function,
       refNeedsArrowPos?: ?Pos,
     ): N.Expression {
@@ -2576,7 +2578,7 @@ export default (superClass: Class<Parser>): Class<Parser> =>
           () =>
             super.parseMaybeAssign(
               noIn,
-              refShorthandDefaultPos,
+              refExpressionErrors,
               afterLeftParse,
               refNeedsArrowPos,
             ),
@@ -2610,7 +2612,7 @@ export default (superClass: Class<Parser>): Class<Parser> =>
             () =>
               super.parseMaybeAssign(
                 noIn,
-                refShorthandDefaultPos,
+                refExpressionErrors,
                 afterLeftParse,
                 refNeedsArrowPos,
               ),
@@ -2658,7 +2660,7 @@ export default (superClass: Class<Parser>): Class<Parser> =>
 
       return super.parseMaybeAssign(
         noIn,
-        refShorthandDefaultPos,
+        refExpressionErrors,
         afterLeftParse,
         refNeedsArrowPos,
       );
@@ -2801,7 +2803,6 @@ export default (superClass: Class<Parser>): Class<Parser> =>
       subscriptState: N.ParseSubscriptState,
     ): N.Expression {
       if (this.match(tt.questionDot) && this.isLookaheadRelational("<")) {
-        this.expectPlugin("optionalChaining");
         subscriptState.optionalChainMember = true;
         if (noCalls) {
           subscriptState.stop = true;
