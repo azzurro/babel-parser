@@ -388,6 +388,13 @@ export default class StatementParser extends ExpressionParser {
   parseDecorator(): N.Decorator {
     this.expectOnePlugin(["decorators-legacy", "decorators"]);
 
+    // !!!
+    const currentContextDecorators = this.state.decoratorStack[
+      this.state.decoratorStack.length - 1
+    ];
+
+    this.state.decoratorStack[this.state.decoratorStack.length - 1] = [];
+
     const node = this.startNode();
     this.next();
 
@@ -420,7 +427,13 @@ export default class StatementParser extends ExpressionParser {
     } else {
       node.expression = this.parseExprSubscripts();
     }
-    return this.finishNode(node, "Decorator");
+    const result = this.finishNode(node, "Decorator");
+
+    this.state.decoratorStack[
+        this.state.decoratorStack.length - 1
+    ] = currentContextDecorators;
+
+    return result;
   }
 
   parseMaybeDecoratorArguments(expr: N.Expression): N.Expression {

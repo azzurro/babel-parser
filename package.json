@@ -1,6 +1,6 @@
 {
   "name": "@babel/parser",
-  "version": "7.8.3-b",
+  "version": "7.8.3-c",
   "description": "A JavaScript parser",
   "license": "MIT",
   "private": true,
